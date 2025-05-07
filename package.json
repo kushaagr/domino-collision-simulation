@@ -1,0 +1,22 @@
+{
+  "name": "domino-collisions",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/dat.gui": "^0.7.13",
+    "@types/three": "^0.175.0",
+    "dat.gui": "^0.7.9",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5"
+  },
+  "dependencies": {
+    "prettier": "^3.5.3",
+    "three": "^0.175.0"
+  }
+}
