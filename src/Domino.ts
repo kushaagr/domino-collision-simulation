@@ -50,7 +50,7 @@ export class Domino {
     this.updateOBB();
   }
 
-  applyTexture(textureUrl: string) {
+  loadApplyTexture(textureUrl: string) {
     const loader = new THREE.TextureLoader();
     const texture = loader.load(textureUrl);
     texture.wrapS = THREE.RepeatWrapping;
@@ -61,6 +61,12 @@ export class Domino {
     const material = new THREE.MeshPhongMaterial({ map: texture });
     this.mesh.material = material;
   }
+
+  applyTexture(texture: THREE.Texture) {
+    const material = new THREE.MeshPhongMaterial({ map: texture });
+    this.mesh.material = material;
+  }
+
 
   // rotate(axis = new THREE.Vector3(0, 1, 0), degrees = 1) {
   //   const radians = THREE.MathUtils.degToRad(degrees);
