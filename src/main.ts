@@ -4,6 +4,17 @@ import * as dat from "dat.gui";
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { TrackballControls } from "three/addons/controls/TrackballControls.js";
+import {
+  gouradfragmentsrc,
+  gouradvertexsrc,
+  phongfragmentsrc,
+  phongvertexsrc,
+  blinngouraudvertexsrc,
+  blinngouraudfragmentsrc,
+  blinnphongvertexsrc,
+  blinnphongfragmentsrc,
+} from "./Shader_lib/shaders.js";
+
 import { setupLights } from "./lighting";
 import { Domino, Axis } from "./Domino";
 import { Ball } from "./Ball";
@@ -12,6 +23,21 @@ let pts = 39;
 // const scene = new THREE.Scene();
 // scene.background = new THREE.Color(0x222222)
 // const renderer = new THREE.WebGLRenderer();
+
+const c0v1 = new THREE.Vector3(-5, 0, 0);
+const c0v2 = new THREE.Vector3(0, 0, 3);
+const c0v3 = new THREE.Vector3(3, 0, 0);
+const c0v4 = new THREE.Vector3(-2, 0, -3);
+
+const c0vc1 = c0v2
+  .clone()
+  .lerp(c0v3, 0.5)
+  .add(new THREE.Vector3(2, 0, 2));
+const curve0 = new THREE.CurvePath();
+curve0.add(new THREE.LineCurve3(c0v1, c0v2));
+// curve0.add(new THREE.LineCurve3(c0v2, c0v3));
+curve0.add(new THREE.QuadraticBezierCurve3(c0v2, c0vc1, c0v3));
+curve0.add(new THREE.LineCurve3(c0v3, c0v4));
 
 const c1v1 = new THREE.Vector3(-5, 0, 0);
 const c1v2 = new THREE.Vector3(0, 0, 3);
@@ -27,8 +53,6 @@ curve1.add(new THREE.LineCurve3(c1v1, c1v2));
 curve1.add(new THREE.LineCurve3(c1v2, c1v3));
 curve1.add(new THREE.QuadraticBezierCurve3(c1v2, vc1, c1v3));
 curve1.add(new THREE.LineCurve3(c1v3, c1v4));
-
-
 
 const c2v1 = new THREE.Vector3(-2.12132034, 0, -2.12132034);
 const c2v2 = new THREE.Vector3(0, 0, 0);
@@ -59,8 +83,9 @@ curve3.add(new THREE.LineCurve3(c3v3, c3v31));
 curve3.add(new THREE.LineCurve3(c3v4, c3v41));
 
 const curvePaths = [
-  curve1, 
-  curve2, 
+  curve0,
+  curve1,
+  curve2,
   // curve3
 ];
 
@@ -97,7 +122,7 @@ const savedGui = gui
   })
   .save();
 
-console.log(savedGui)
+console.log(savedGui);
 
 // Keybindings for switching setups
 window.addEventListener("keydown", (event) => {
@@ -117,12 +142,36 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
-window.addEventListener('load', () => {
+window.addEventListener("load", () => {
   // Initialize with the first curve setup
   dominoSetup(curvePaths[0], scene, renderer, new GUI());
-
-})
+});
 // dominoSetup(curvePaths[config.curveSetupIndex], scene, renderer, gui);
+
+const lightPositions = [
+  new THREE.Vector3(2, 2, 2),
+  new THREE.Vector3(-1, 3, 0),
+  new THREE.Vector3(-5, -5, 0),
+];
+const lightColors = [
+  new THREE.Color(0xffffff),
+  new THREE.Color(0xffffff),
+  new THREE.Color(0xffffff),
+];
+
+const blinn_phong_gouraudMaterial = new THREE.ShaderMaterial({
+  vertexShader: blinngouraudvertexsrc,
+  fragmentShader: blinngouraudfragmentsrc,
+  uniforms: {
+    numLights: { value: 2 },
+    lightPositions: { value: lightPositions },
+    lightColors: { value: lightColors },
+    diffuseColor: { value: new THREE.Color(0x555022) },
+    specularColor: { value: new THREE.Color(0xf0f0ff) },
+    ambientColor: { value: new THREE.Color(0, 1, 0) },
+    shininess: { value: 50.0 },
+  },
+});
 
 export function dominoSetup(curvePath, scene, renderer, gui, showBB = false) {
   while (scene.children.length > 0) {
@@ -134,6 +183,7 @@ export function dominoSetup(curvePath, scene, renderer, gui, showBB = false) {
     pts,
     [0.3, 1.4, 0.1],
     "/textures/woodgrain.jpg",
+    // blinn_phong_gouraudMaterial
   );
   dominos.forEach((domino) => {
     scene.add(domino.mesh);
@@ -311,7 +361,7 @@ export function dominoSetup(curvePath, scene, renderer, gui, showBB = false) {
   start();
 }
 
-function createDominos(count, dimensions = [1, 1, 1], textureUrl) {
+function createDominos(count, dimensions = [1, 1, 1], textureUrl, material=null) {
   const [width, height, depth] = dimensions;
   const dominos = [];
   let texture;
@@ -324,6 +374,9 @@ function createDominos(count, dimensions = [1, 1, 1], textureUrl) {
   for (let i = 0; i < count; i++) {
     const domino = new Domino(width, height, depth);
     if (texture) domino.applyTexture(texture);
+    if (material) {
+      domino.updateMaterial(material);
+    }
     dominos.push(domino);
   }
   return dominos;

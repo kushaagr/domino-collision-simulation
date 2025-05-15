@@ -41,6 +41,10 @@ export class Domino {
     // this.createOBBHelper(); // Create OBB visualization
   }
 
+  updateMaterial(material) {
+    this.mesh.material = material;
+  }
+
   setAnchor(x: number, y: number, z: number) {
     this.anchor.set(x, y, z);
   }
